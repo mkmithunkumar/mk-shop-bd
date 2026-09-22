@@ -1,3 +1,4 @@
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztb6e3qOUbLVAtbhCY99zERZKxiolhSOxsU2it2fzocx_yAjDkh_Zkr321feTDvtWh/exec";
 const WHATSAPP='8801722838801';
 const products={
  rice:{name:'চালের গুঁড়া',price:120,image:'images/rice-powder.jpg'},
