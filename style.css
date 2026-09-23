@@ -659,3 +659,24 @@ button {
         bottom: 15px;
     }
 }
+/* Cash on Delivery Banner */
+.cod-banner {
+    background: #e8f5e9;
+    color: #146c43;
+    text-align: center;
+    padding: 10px 15px;
+    font-size: 15px;
+    font-weight: 500;
+    border-bottom: 1px solid #c8e6c9;
+}
+
+.cod-banner strong {
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .cod-banner {
+        font-size: 13px;
+        padding: 9px 10px;
+    }
+}
