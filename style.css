@@ -659,38 +659,32 @@ button {
         bottom: 15px;
     }
 }
-/* Moving COD Banner */
+/* ===== Moving COD Banner ===== */
+
 .cod-banner {
     width: 100%;
     overflow: hidden;
-    background: #e8f5e9;
-    color: #146c43;
-    padding: 10px 0;
+    background: #198754;
+    color: white;
+    padding: 9px 0;
     white-space: nowrap;
-    border-bottom: 1px solid #c8e6c9;
 }
 
-.cod-moving-text {
+.cod-track {
     display: inline-block;
+    white-space: nowrap;
     padding-left: 100%;
-    animation: codMove 15s linear infinite;
+    animation: movingText 12s linear infinite;
     font-size: 15px;
     font-weight: 600;
 }
 
-@keyframes codMove {
-    from {
+@keyframes movingText {
+    0% {
         transform: translateX(0);
     }
 
-    to {
+    100% {
         transform: translateX(-100%);
-    }
-}
-
-@media (max-width: 600px) {
-    .cod-moving-text {
-        font-size: 13px;
-        animation-duration: 12s;
     }
 }
