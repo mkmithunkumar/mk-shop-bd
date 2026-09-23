@@ -47,7 +47,7 @@ button {
 .site-header {
     background: #198754;
     border-bottom: 1px solid #198754;
-    position: fixed;
+    position: sticky;
     top: 0;
     z-index: 1000;
 }
