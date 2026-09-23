@@ -1,189 +1,648 @@
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztb6e3qOUbLVAtbhCY99zERZKxiolhSOxsU2it2fzocx_yAjDkh_Zkr321feTDvtWh/exec";
-const WHATSAPP='8801722838801';
-const products={
- rice:{name:'চালের গুঁড়া',price:120,image:'images/rice-powder.jpg'},
- 'date-powder':{name:'খেজুরের গুড়ের গুঁড়া',price:280,image:'images/date-jaggery-powder.jpg'},
- 'liquid-jaggery':{name:'খেজুরের ঝোলা গুড়',price:300,image:'images/liquid-jaggery.jpg'},
- patali:{name:'খেজুরের পাটালি গুড়',price:320,image:'images/patali-jaggery.jpg'}
-};
-let cart=JSON.parse(localStorage.getItem('mkshop_cart')||'{}');
-const money=n=>'৳'+Number(n).toLocaleString('bn-BD');
-function save(){localStorage.setItem('mkshop_cart',JSON.stringify(cart));renderCart()}
-function add(id){cart[id]=(cart[id]||0)+1;save();openCart()}
-function change(id,delta){cart[id]=(cart[id]||0)+delta;if(cart[id]<=0)delete cart[id];save()}
-function total(){return Object.entries(cart).reduce((s,[id,q])=>s+products[id].price*q,0)}
-function renderCart(){
- const box=document.getElementById('cartItems'),empty=document.getElementById('cartEmpty');box.innerHTML='';let count=0;
- Object.entries(cart).forEach(([id,q])=>{const p=products[id];count+=q;box.insertAdjacentHTML('beforeend',`<div class="cart-row"><img src="${p.image}" alt="${p.name}"><div><h4>${p.name}</h4><p>${money(p.price)} × ${q} = <strong>${money(p.price*q)}</strong></p><div class="qty"><button onclick="change('${id}',-1)">−</button><span>${q}</span><button onclick="change('${id}',1)">+</button><button class="remove" onclick="change('${id}',-${q})">মুছুন</button></div></div><span></span></div>`)});
- document.getElementById('cartCount').textContent=count;document.getElementById('cartTotal').textContent=money(total());empty.style.display=count?'none':'block';
-}
-function openCart(){document.getElementById('cartPanel').classList.add('open');document.getElementById('overlay').classList.add('show')}
-function closeCart(){document.getElementById('cartPanel').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
-document.querySelectorAll('.add-btn').forEach(btn=>btn.addEventListener('click',e=>add(e.target.closest('.product-card').dataset.id)));
-document.getElementById('cartBtn').addEventListener('click',openCart);document.getElementById('closeCart').addEventListener('click',closeCart);document.getElementById('overlay').addEventListener('click',closeCart);
-document.getElementById('orderBtn').addEventListener('click',()=>{if(!Object.keys(cart).length){alert('আগে অন্তত একটি পণ্য কার্টে যোগ করুন।');return}let lines=['হ্যালো MK Shop BD, আমি নিচের পণ্যগুলো অর্ডার করতে চাই:', ''];Object.entries(cart).forEach(([id,q])=>{const p=products[id];lines.push(`• ${p.name} — ${q} কেজি — ${money(p.price*q)}`)});lines.push('',`মোট পণ্য মূল্য: ${money(total())}`,'নাম: ','ঠিকানা: ','মোবাইল: ','');window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`,'_blank')});
-document.getElementById('year').textContent=new Date().getFullYear();renderCart();
-let mkOrder = {
-  name: "",
-  phone: "",
-  product: "",
-  quantity: "",
-  total: "",
-  address: ""
+/* =========================================
+   MK SHOP BD
+   GOOGLE SHEET ORDER SYSTEM
+========================================= */
+
+
+/* =========================================
+   GOOGLE APPS SCRIPT URL
+========================================= */
+
+const GOOGLE_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbxpsqd3ct0EaAFUrks6Wxrw11Z0_nIiPBv9ooS3doZIj8O3xY5NtJUcmogl3XjDNHtB/exec";
+
+
+/* =========================================
+   ORDER DATA
+========================================= */
+
+window.mkOrder = {
+
+    name: "",
+
+    phone: "",
+
+    product: "",
+
+    quantity: "",
+
+    total: "",
+
+    address: ""
+
 };
 
-let mkStep = 0;
+
+/* =========================================
+   CHAT STEP
+========================================= */
+
+window.mkStep = 0;
+
+
+/* =========================================
+   OPEN / CLOSE CHAT
+========================================= */
 
 function toggleMKChat() {
-  const box = document.getElementById("mkChatBox");
 
-  if (box.style.display === "flex") {
-    box.style.display = "none";
-  } else {
-    box.style.display = "flex";
-  }
-}
+    const box =
+        document.getElementById("mkChatBox");
 
-function addMKMessage(message, type) {
-  const messages = document.getElementById("mkChatMessages");
 
-  const div = document.createElement("div");
+    if (box.style.display === "flex") {
 
-  div.className =
-    type === "user" ? "mkUserMessage" : "mkBotMessage";
-
-  div.innerHTML = message;
-
-  messages.appendChild(div);
-
-  messages.scrollTop = messages.scrollHeight;
-}
-
-function sendMKMessage() {
-
-  const input = document.getElementById("mkChatInput");
-  const message = input.value.trim();
-
-  if (!message) return;
-
-  addMKMessage(message, "user");
-
-  input.value = "";
-
-  setTimeout(() => {
-    processMKMessage(message);
-  }, 400);
-}
-
-function processMKMessage(message) {
-
-  if (mkStep === 0) {
-
-    mkOrder.product = message;
-    mkStep = 1;
-
-    addMKMessage(
-      "ঠিক আছে 👍<br>কত কেজি/টি নিতে চান?",
-      "bot"
-    );
-
-    return;
-  }
-
-  if (mkStep === 1) {
-
-    mkOrder.quantity = message;
-    mkStep = 2;
-
-    addMKMessage(
-      "আপনার নামটি লিখুন।",
-      "bot"
-    );
-
-    return;
-  }
-
-  if (mkStep === 2) {
-
-    mkOrder.name = message;
-    mkStep = 3;
-
-    addMKMessage(
-      "আপনার মোবাইল নম্বরটি দিন।",
-      "bot"
-    );
-
-    return;
-  }
-
-  if (mkStep === 3) {
-
-    mkOrder.phone = message;
-    mkStep = 4;
-
-    addMKMessage(
-      "আপনার সম্পূর্ণ ঠিকানা লিখুন।",
-      "bot"
-    );
-
-    return;
-  }
-
-  if (mkStep === 4) {
-
-    mkOrder.address = message;
-
-    mkStep = 5;
-
-    addMKMessage(
-      "আপনার অর্ডারটি নেওয়া হচ্ছে... ⏳",
-      "bot"
-    );
-
-    submitMKOrder();
-
-    return;
-  }
-}
-
-async function submitMKOrder() {
-
-  try {
-
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify(mkOrder)
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-
-      addMKMessage(
-        "✅ অর্ডার সফল হয়েছে!<br><br>" +
-        "আপনার Order ID: <b>" +
-        result.orderId +
-        "</b><br><br>" +
-        "ধন্যবাদ ❤️",
-        "bot"
-      );
+        box.style.display = "none";
 
     } else {
 
-      addMKMessage(
-        "❌ অর্ডার নেওয়া যায়নি। আবার চেষ্টা করুন।",
-        "bot"
-      );
+        box.style.display = "flex";
+
+        document
+            .getElementById("mkChatInput")
+            .focus();
 
     }
 
-  } catch (error) {
+}
+
+
+/* =========================================
+   ADD CHAT MESSAGE
+========================================= */
+
+function addMKMessage(message, type) {
+
+    const messages =
+        document.getElementById("mkChatMessages");
+
+
+    const div =
+        document.createElement("div");
+
+
+    if (type === "user") {
+
+        div.className =
+            "mkUserMessage";
+
+    } else {
+
+        div.className =
+            "mkBotMessage";
+
+    }
+
+
+    div.innerHTML = message;
+
+
+    messages.appendChild(div);
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+}
+
+
+/* =========================================
+   SEND MESSAGE
+========================================= */
+
+function sendMKMessage() {
+
+    const input =
+        document.getElementById("mkChatInput");
+
+
+    const message =
+        input.value.trim();
+
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+    /* User message */
 
     addMKMessage(
-      "❌ অর্ডার পাঠাতে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
-      "bot"
+        message,
+        "user"
     );
 
-    console.error(error);
-  }
+
+    /* Clear input */
+
+    input.value = "";
+
+
+    /* Process message */
+
+    setTimeout(function() {
+
+        processMKMessage(message);
+
+    }, 350);
+
 }
+
+
+/* =========================================
+   PROCESS CHAT
+========================================= */
+
+function processMKMessage(message) {
+
+
+    /* -------------------------------------
+       STEP 0 - PRODUCT
+    ------------------------------------- */
+
+    if (window.mkStep === 0) {
+
+        window.mkOrder.product =
+            message;
+
+
+        window.mkStep = 1;
+
+
+        addMKMessage(
+
+            "ঠিক আছে 👍<br><br>" +
+
+            "কত কেজি/টি নিতে চান?",
+
+            "bot"
+
+        );
+
+
+        return;
+
+    }
+
+
+    /* -------------------------------------
+       STEP 1 - QUANTITY
+    ------------------------------------- */
+
+    if (window.mkStep === 1) {
+
+        window.mkOrder.quantity =
+            message;
+
+
+        window.mkStep = 2;
+
+
+        addMKMessage(
+
+            "ধন্যবাদ। 😊<br><br>" +
+
+            "আপনার নামটি লিখুন।",
+
+            "bot"
+
+        );
+
+
+        return;
+
+    }
+
+
+    /* -------------------------------------
+       STEP 2 - NAME
+    ------------------------------------- */
+
+    if (window.mkStep === 2) {
+
+        window.mkOrder.name =
+            message;
+
+
+        window.mkStep = 3;
+
+
+        addMKMessage(
+
+            "ধন্যবাদ " +
+            message +
+            "। 😊<br><br>" +
+
+            "আপনার মোবাইল নম্বরটি দিন।",
+
+            "bot"
+
+        );
+
+
+        return;
+
+    }
+
+
+    /* -------------------------------------
+       STEP 3 - PHONE
+    ------------------------------------- */
+
+    if (window.mkStep === 3) {
+
+        window.mkOrder.phone =
+            message;
+
+
+        window.mkStep = 4;
+
+
+        addMKMessage(
+
+            "ঠিক আছে। 👍<br><br>" +
+
+            "আপনার সম্পূর্ণ ঠিকানা লিখুন।",
+
+            "bot"
+
+        );
+
+
+        return;
+
+    }
+
+
+    /* -------------------------------------
+       STEP 4 - ADDRESS
+    ------------------------------------- */
+
+    if (window.mkStep === 4) {
+
+        window.mkOrder.address =
+            message;
+
+
+        window.mkStep = 5;
+
+
+        addMKMessage(
+
+            "আপনার অর্ডারটি নেওয়া হচ্ছে... ⏳",
+
+            "bot"
+
+        );
+
+
+        submitMKOrder();
+
+
+        return;
+
+    }
+
+}
+
+
+/* =========================================
+   SEND ORDER TO GOOGLE SHEET
+========================================= */
+
+async function submitMKOrder() {
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                GOOGLE_SCRIPT_URL,
+
+                {
+
+                    method: "POST",
+
+                    body:
+                        JSON.stringify(
+                            window.mkOrder
+                        )
+
+                }
+
+            );
+
+
+        const result =
+            await response.json();
+
+
+        /* ---------------------------------
+           SUCCESS
+        --------------------------------- */
+
+        if (result.success) {
+
+
+            addMKMessage(
+
+                "✅ <b>অর্ডার সফল হয়েছে!</b>" +
+
+                "<br><br>" +
+
+                "পণ্য: " +
+                window.mkOrder.product +
+
+                "<br>" +
+
+                "পরিমাণ: " +
+                window.mkOrder.quantity +
+
+                "<br>" +
+
+                "নাম: " +
+                window.mkOrder.name +
+
+                "<br>" +
+
+                "মোবাইল: " +
+                window.mkOrder.phone +
+
+                "<br><br>" +
+
+                "Order ID:<br>" +
+
+                "<b>" +
+                result.orderId +
+                "</b>" +
+
+                "<br><br>" +
+
+                "আপনার অর্ডারটি আমাদের কাছে পৌঁছেছে। ❤️" +
+
+                "<button " +
+
+                "class='mkNewOrderButton' " +
+
+                "onclick='startNewMKOrder()'>" +
+
+                "🔄 নতুন অর্ডার করুন" +
+
+                "</button>",
+
+                "bot"
+
+            );
+
+        }
+
+
+        /* ---------------------------------
+           ERROR
+        --------------------------------- */
+
+        else {
+
+            addMKMessage(
+
+                "❌ <b>অর্ডার পাঠানো যায়নি।</b>" +
+
+                "<br><br>" +
+
+                "দয়া করে আবার চেষ্টা করুন।",
+
+                "bot"
+
+            );
+
+        }
+
+
+    } catch (error) {
+
+
+        console.error(
+            "MK SHOP ORDER ERROR:",
+            error
+        );
+
+
+        addMKMessage(
+
+            "❌ <b>অর্ডার পাঠাতে সমস্যা হয়েছে।</b>" +
+
+            "<br><br>" +
+
+            "ইন্টারনেট সংযোগ পরীক্ষা করে " +
+
+            "আবার চেষ্টা করুন।",
+
+            "bot"
+
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   START NEW ORDER
+========================================= */
+
+function startNewMKOrder() {
+
+
+    /* Reset order */
+
+    window.mkOrder = {
+
+        name: "",
+
+        phone: "",
+
+        product: "",
+
+        quantity: "",
+
+        total: "",
+
+        address: ""
+
+    };
+
+
+    /* Reset step */
+
+    window.mkStep = 0;
+
+
+    /* Clear messages */
+
+    const messages =
+        document.getElementById(
+            "mkChatMessages"
+        );
+
+
+    messages.innerHTML = `
+
+        <div class="mkBotMessage">
+
+            নমস্কার! 🙏
+
+            <br><br>
+
+            MK SHOP BD-তে স্বাগতম।
+
+            <br><br>
+
+            আপনি কোন পণ্য অর্ডার করতে চান?
+
+        </div>
+
+    `;
+
+
+    /* Clear input */
+
+    const input =
+        document.getElementById(
+            "mkChatInput"
+        );
+
+
+    input.value = "";
+
+
+    input.focus();
+
+}
+
+
+/* =========================================
+   PRODUCT BUTTON
+========================================= */
+
+function selectProduct(
+    productName,
+    price
+) {
+
+
+    /* Open chat */
+
+    const box =
+        document.getElementById(
+            "mkChatBox"
+        );
+
+
+    box.style.display = "flex";
+
+
+    /* Save product */
+
+    window.mkOrder.product =
+        productName;
+
+
+    window.mkOrder.total =
+        price;
+
+
+    /* Step 1 = quantity */
+
+    window.mkStep = 1;
+
+
+    /* Show message */
+
+    const messages =
+        document.getElementById(
+            "mkChatMessages"
+        );
+
+
+    messages.innerHTML = `
+
+        <div class="mkBotMessage">
+
+            আপনি নির্বাচন করেছেন:
+
+            <br><br>
+
+            <strong>
+                ${productName}
+            </strong>
+
+            <br>
+
+            মূল্য:
+            <strong>
+                ৳${price} / kg
+            </strong>
+
+            <br><br>
+
+            কত কেজি নিতে চান?
+
+        </div>
+
+    `;
+
+
+    /* Focus input */
+
+    document
+        .getElementById(
+            "mkChatInput"
+        )
+        .focus();
+
+}
+
+
+/* =========================================
+   ENTER KEY
+========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+
+        const input =
+            document.getElementById(
+                "mkChatInput"
+            );
+
+
+        if (input) {
+
+
+            input.addEventListener(
+                "keydown",
+                function(event) {
+
+
+                    if (
+                        event.key === "Enter"
+                    ) {
+
+                        event.preventDefault();
+
+                        sendMKMessage();
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+);
