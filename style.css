@@ -659,32 +659,30 @@ button {
         bottom: 15px;
     }
 }
-/* ===== Moving COD Banner ===== */
+/* ===== MK SHOP BD RUNNING TEXT ===== */
 
 .cod-banner {
-    width: 100%;
-    overflow: hidden;
-    background: #198754;
-    color: white;
-    padding: 9px 0;
-    white-space: nowrap;
+    width: 100% !important;
+    overflow: hidden !important;
+    background: #198754 !important;
+    color: #fff !important;
+    height: 40px;
+    line-height: 40px;
+    white-space: nowrap !important;
 }
 
 .cod-track {
-    display: inline-block;
-    white-space: nowrap;
-    padding-left: 100%;
-    animation: movingText 12s linear infinite;
-    font-size: 15px;
-    font-weight: 600;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    position: relative;
+    animation: mkRunningText 10s linear infinite !important;
 }
 
-@keyframes movingText {
-    0% {
-        transform: translateX(0);
+@keyframes mkRunningText {
+    from {
+        transform: translateX(100vw);
     }
-
-    100% {
+    to {
         transform: translateX(-100%);
     }
 }
