@@ -23,3 +23,167 @@ document.querySelectorAll('.add-btn').forEach(btn=>btn.addEventListener('click',
 document.getElementById('cartBtn').addEventListener('click',openCart);document.getElementById('closeCart').addEventListener('click',closeCart);document.getElementById('overlay').addEventListener('click',closeCart);
 document.getElementById('orderBtn').addEventListener('click',()=>{if(!Object.keys(cart).length){alert('আগে অন্তত একটি পণ্য কার্টে যোগ করুন।');return}let lines=['হ্যালো MK Shop BD, আমি নিচের পণ্যগুলো অর্ডার করতে চাই:', ''];Object.entries(cart).forEach(([id,q])=>{const p=products[id];lines.push(`• ${p.name} — ${q} কেজি — ${money(p.price*q)}`)});lines.push('',`মোট পণ্য মূল্য: ${money(total())}`,'নাম: ','ঠিকানা: ','মোবাইল: ','');window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`,'_blank')});
 document.getElementById('year').textContent=new Date().getFullYear();renderCart();
+let mkOrder = {
+  name: "",
+  phone: "",
+  product: "",
+  quantity: "",
+  total: "",
+  address: ""
+};
+
+let mkStep = 0;
+
+function toggleMKChat() {
+  const box = document.getElementById("mkChatBox");
+
+  if (box.style.display === "flex") {
+    box.style.display = "none";
+  } else {
+    box.style.display = "flex";
+  }
+}
+
+function addMKMessage(message, type) {
+  const messages = document.getElementById("mkChatMessages");
+
+  const div = document.createElement("div");
+
+  div.className =
+    type === "user" ? "mkUserMessage" : "mkBotMessage";
+
+  div.innerHTML = message;
+
+  messages.appendChild(div);
+
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function sendMKMessage() {
+
+  const input = document.getElementById("mkChatInput");
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  addMKMessage(message, "user");
+
+  input.value = "";
+
+  setTimeout(() => {
+    processMKMessage(message);
+  }, 400);
+}
+
+function processMKMessage(message) {
+
+  if (mkStep === 0) {
+
+    mkOrder.product = message;
+    mkStep = 1;
+
+    addMKMessage(
+      "ঠিক আছে 👍<br>কত কেজি/টি নিতে চান?",
+      "bot"
+    );
+
+    return;
+  }
+
+  if (mkStep === 1) {
+
+    mkOrder.quantity = message;
+    mkStep = 2;
+
+    addMKMessage(
+      "আপনার নামটি লিখুন।",
+      "bot"
+    );
+
+    return;
+  }
+
+  if (mkStep === 2) {
+
+    mkOrder.name = message;
+    mkStep = 3;
+
+    addMKMessage(
+      "আপনার মোবাইল নম্বরটি দিন।",
+      "bot"
+    );
+
+    return;
+  }
+
+  if (mkStep === 3) {
+
+    mkOrder.phone = message;
+    mkStep = 4;
+
+    addMKMessage(
+      "আপনার সম্পূর্ণ ঠিকানা লিখুন।",
+      "bot"
+    );
+
+    return;
+  }
+
+  if (mkStep === 4) {
+
+    mkOrder.address = message;
+
+    mkStep = 5;
+
+    addMKMessage(
+      "আপনার অর্ডারটি নেওয়া হচ্ছে... ⏳",
+      "bot"
+    );
+
+    submitMKOrder();
+
+    return;
+  }
+}
+
+async function submitMKOrder() {
+
+  try {
+
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(mkOrder)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+
+      addMKMessage(
+        "✅ অর্ডার সফল হয়েছে!<br><br>" +
+        "আপনার Order ID: <b>" +
+        result.orderId +
+        "</b><br><br>" +
+        "ধন্যবাদ ❤️",
+        "bot"
+      );
+
+    } else {
+
+      addMKMessage(
+        "❌ অর্ডার নেওয়া যায়নি। আবার চেষ্টা করুন।",
+        "bot"
+      );
+
+    }
+
+  } catch (error) {
+
+    addMKMessage(
+      "❌ অর্ডার পাঠাতে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+      "bot"
+    );
+
+    console.error(error);
+  }
+}
