@@ -80,5 +80,34 @@
   <div class="overlay" id="overlay"></div>
   <aside class="cart-panel" id="cartPanel" aria-label="Shopping cart"><div class="cart-head"><h2>আপনার কার্ট</h2><button id="closeCart" aria-label="কার্ট বন্ধ করুন">×</button></div><div id="cartItems" class="cart-items"></div><div class="cart-empty" id="cartEmpty">আপনার কার্ট এখন খালি।</div><div class="cart-footer"><div class="total"><span>মোট</span><strong id="cartTotal">৳০</strong></div><button class="btn whatsapp full" id="orderBtn">WhatsApp-এ অর্ডার করুন</button></div></aside>
   <script src="script.js"></script>
+<!-- MK SHOP BD Chat Box -->
+<div id="mkChatButton" onclick="toggleMKChat()">💬</div>
+
+<div id="mkChatBox">
+
+  <div id="mkChatHeader">
+    🤖 MK SHOP BD
+    <span onclick="toggleMKChat()">✕</span>
+  </div>
+
+  <div id="mkChatMessages">
+    <div class="mkBotMessage">
+      নমস্কার! 🙏<br>
+      MK SHOP BD-তে স্বাগতম। আপনি কোন পণ্য অর্ডার করতে চান?
+    </div>
+  </div>
+
+  <div id="mkChatInputArea">
+    <input
+      type="text"
+      id="mkChatInput"
+      placeholder="আপনার মেসেজ লিখুন..."
+      onkeydown="if(event.key==='Enter') sendMKMessage()"
+    >
+
+    <button onclick="sendMKMessage()">➤</button>
+  </div>
+
+</div>
 </body>
 </html>
