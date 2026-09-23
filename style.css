@@ -45,8 +45,8 @@ button {
 ========================================= */
 
 .site-header {
-    background: #ffffff;
-    border-bottom: 1px solid #eeeeee;
+    background: #198754;
+    border-bottom: 1px solid #198754;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -63,7 +63,7 @@ button {
 .logo {
     font-size: 25px;
     font-weight: 800;
-    color: #111;
+    color: #ffffff;
 }
 
 .main-nav {
@@ -75,7 +75,7 @@ button {
 .main-nav a {
     font-size: 15px;
     font-weight: 600;
-    color: #333;
+    color: #ffffff;
     transition: 0.2s;
 }
 
