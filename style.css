@@ -675,7 +675,7 @@ button {
     display: inline-block !important;
     white-space: nowrap !important;
     position: relative;
-    animation: mkRunningText 10s linear infinite !important;
+    animation: mkRunningText 25s linear infinite !important;
 }
 
 @keyframes mkRunningText {
